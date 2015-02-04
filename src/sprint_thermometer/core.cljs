@@ -40,10 +40,19 @@
         mercury-bubble-x (quot width 2)
         mercury-column-width 14
         mercury-column-height (- height (* 2 border-width) (* margin 2) (* padding 2) mercury-bubble-rx)
+
+        max-temperature 440
+        min-temperature 341
+        normal-temperature 366
+        notches-count (- max-temperature min-temperature)
+
         pvc-ratio (if enough-data?
-                    (min (- 100 (int (* 100 (/ (:completed data)
-                                               (* (/ (:planned data) (:sprint-duration data)) (:sprint-day-number data))))))
-                         (- 440 366))
+                    (max
+                      (min (- notches-count (int (* 100 (/ (:completed data)
+                                                           (* (/ (:planned data) (:sprint-duration data))
+                                                              (:sprint-day-number data))))))
+                           (- max-temperature normal-temperature))
+                      (- min-temperature normal-temperature))
                     0)
 
         status-color (cond
@@ -53,14 +62,18 @@
                        (< pvc-ratio 20) "orange"
                        :else "red")
 
-        zero-y (* (- 440 366) notch-height)
+
+        zero-y (* (- max-temperature normal-temperature) notch-height)
         status-bar-y (- (+ zero-y margin border-width padding notches-margin-top)
                         (* notch-height pvc-ratio))]
+
     [:svg {:xmlns  "http://www.w3.org/2000/svg"
            :width  width
            :height height}
 
      [:g
+
+      ; Thermometer outline
       [:rect
        {:x      margin
         :y      margin
@@ -70,9 +83,9 @@
         :ry     (quot width 6)
         :style  {:stroke       border-color
                  :stroke-width border-width
-                 :fill         "white"
-                 }}]
+                 :fill         "white"}}]
 
+      ; Mercury Column
       [:rect
        {:x      (- (quot width 2) (quot mercury-column-width 2))
         :y      (+ margin border-width padding)
@@ -95,7 +108,7 @@
        "F"]
 
       ; Celsium notches bar
-      (for [i (range 101)]
+      (for [i (range (inc notches-count))]
         [:g
          [:rect
           {:x      (+ (quot width 2) mercury-column-width)
@@ -105,19 +118,19 @@
                      (zero? (mod i 5)) (* 1.5 notch-width)
                      :else notch-width)
            :height 2
-           :style  {:fill "#333"}}]
+           :style  {:fill (if (= i (- max-temperature normal-temperature)) "red" "#333")}}]
 
          (when (zero? (mod i 10))
            [:text
-            {:x     (+ (quot width 2) mercury-column-width (* 2.5 notch-width))
+            {:x     (+ (quot width 2) mercury-column-width (* 2.2 notch-width))
              :y     (+ (* i 4) margin padding border-width notches-margin-top 6)
              :style {:font-size   16
                      :font-weight "bold"}}
-            (gstring/format "%.1f" (/ (- 440 i) 10))])])
+            (gstring/format "%.1f" (/ (- max-temperature i) 10))])])
 
 
       ; Farenheit notches bar
-      (for [i (range 101)]
+      (for [i (range (inc notches-count))]
         [:g
          [:rect
           {:x      (- (quot width 2) mercury-column-width (cond
@@ -130,16 +143,18 @@
                      (zero? (mod i 5)) (* 1.5 notch-width)
                      :else notch-width)
            :height 2
-           :style  {:fill "#333"}}]
+           :style  {:fill (if (= i (- max-temperature normal-temperature)) "red" "#333")}}]
+
          (when (zero? (mod i 10))
            [:text
-            {:x     (- (quot width 2) mercury-column-width (* 4 notch-width))
-             :y     (+ (* i 4) margin padding border-width notches-margin-top 6)
-             :style {:font-size   16
-                     :font-weight "bold"}}
-            (gstring/format "%.1f" (c-to-f (/ (- 440 i) 10)))])])
+            {:x           (- (quot width 2) mercury-column-width (* 2.2 notch-width))
+             :y           (+ (* i 4) margin padding border-width notches-margin-top 6)
+             :text-anchor "end"
+             :style       {:font-size   16
+                           :font-weight "bold"}}
+            (gstring/format "%.1f" (c-to-f (/ (- max-temperature i) 10)))])])
 
-
+      ; Filling Mercury Bar
       (when enough-data?
         [:rect
          {:x      (+ (- (quot width 2) (quot mercury-column-width 2) 1) mercury-border-width)
@@ -149,38 +164,82 @@
                      status-bar-y)
           :style  {:fill status-color}}])
 
+
+      ; Mercury Bubble
       [:circle
        {:cx    mercury-bubble-x
         :cy    mercury-bubble-y
         :r     15
         :style {:stroke       border-color
                 :stroke-width mercury-border-width
-                :fill         status-color}}]]]))
+                :fill         (if enough-data?
+                                status-color
+                                "#eee")}}]]
+
+     ; Healthy Ground Zero (36.6 C)
+     [:rect
+      {:x      (- (quot width 2) (* 4 mercury-column-width))
+       :y      (+ (* (- max-temperature normal-temperature) 4) margin padding border-width notches-margin-top)
+       :width  (* 8 mercury-column-width)
+       :height 2
+       :style  {:fill "red"}}]]))
+
+
+(defn form-row
+  [form-entry]
+  [:div.row
+   [:div.col.s10
+    [:div.input-field
+     [:i.prefix {:class (:icon form-entry)}]
+     [:input {:field :numeric :id (:id form-entry)}]
+     [:label {:for (name (:id form-entry))} (:label form-entry)]]]])
 
 
 (def form-template
   [:form
-
-   [:div.input-field
-    [:i.mdi-action-today.prefix]
-    [:input {:field :numeric :id :sprint-duration}]
-    [:label {:for "sprint-duration"} "Sprint Duration, Days"]]
-
-   [:div.input-field
-    [:i.mdi-action-schedule.prefix]
-    [:input {:field :numeric :id :sprint-day-number}]
-    [:label {:for "sprint-day-number"} "Sprint Day Number"]]
-
-   [:div.input-field
-    [:i.mdi-action-assignment.prefix]
-    [:input {:field :numeric :id :planned}]
-    [:label {:for "planned"} "Planned Tasks Count"]]
+   (for [form-entry [{:id :sprint-duration :label "Sprint Duration, Days" :icon "mdi-action-today"}
+                     {:id :sprint-day-number :label "Sprint Day Number" :icon "mdi-action-schedule"}
+                     {:id :planned :label "Planned Tasks Count" :icon "mdi-action-assignment"}
+                     {:id :completed :label "Completed Tasks Count" :icon "mdi-action-done-all"}]]
+     (form-row form-entry))])
 
 
-   [:div.input-field
-    [:i.mdi-action-done-all.prefix]
-    [:input {:field :numeric :id :completed}]
-    [:label {:for "completed"} "Completed Tasks Count"]]])
+(defn legend
+  [data]
+  [:div
+
+   [:div.row
+    [:div.col.s8
+     [:div.row [:strong "Expected Task Resolution Ratio"]]
+     [:div.row [:small "(Planned Tasks Count / Sprint Duration)"]]]
+
+    [:div.col.s4
+     (if (and (:sprint-duration data) (:planned data))
+       [:span (gstring/format "%.1f" (/ (:planned data) (:sprint-duration data)))]
+       [:div.left-align "N/A"])]]
+
+   [:div.row
+    [:div.col.s8
+     [:div.row [:strong "Expected Completion Count (to date)"]]
+     [:div.row [:small "(Expected Task Resolution Ratio * Sprint Day Number)"]]]
+
+    [:div.col.s4
+     (if (and (:sprint-duration data) (:planned data) (:sprint-day-number data))
+       [:span (gstring/format "%.1f" (* (:sprint-day-number data)
+                                        (/ (:planned data) (:sprint-duration data))))]
+       [:div.left-align "N/A"])]]
+
+   [:div.row
+    [:div.col.s8
+     [:div.row [:strong "Completion Percentage, %"]]
+     [:div.row [:small "(Expected Completion Count / Actually Completed)"]]]
+
+    [:div.col.s4
+     (if (and (:sprint-duration data) (:planned data) (:sprint-day-number data) (:completed data))
+       [:span (gstring/format "%.2f" (* 100 (/ (:completed data)
+                                               (* (:sprint-day-number data)
+                                                  (/ (:planned data) (:sprint-duration data))))))]
+       [:div.left-align "N/A"])]]])
 
 
 (defn app
@@ -193,7 +252,7 @@
         [bind-fields form-template doc]]
        [:div.col.s4
         [:h4 "Data Interpretation"]
-        [:label (str @doc)]]
+        [legend @doc]]
        [:div.col.s4
         [:h4 "Thermometer"]
         [thermometer @doc]]])))

@@ -200,25 +200,25 @@ var atom__1 = (function (x){
 return reagent.ratom.atom.cljs$core$IFn$_invoke$arity$1(x);
 });
 var atom__2 = (function() { 
-var G__16704__delegate = function (x,rest){
+var G__11925__delegate = function (x,rest){
 return cljs.core.apply.cljs$core$IFn$_invoke$arity$3(reagent.ratom.atom,x,rest);
 };
-var G__16704 = function (x,var_args){
+var G__11925 = function (x,var_args){
 var rest = null;
 if (arguments.length > 1) {
-var G__16705__i = 0, G__16705__a = new Array(arguments.length -  1);
-while (G__16705__i < G__16705__a.length) {G__16705__a[G__16705__i] = arguments[G__16705__i + 1]; ++G__16705__i;}
-  rest = new cljs.core.IndexedSeq(G__16705__a,0);
+var G__11926__i = 0, G__11926__a = new Array(arguments.length -  1);
+while (G__11926__i < G__11926__a.length) {G__11926__a[G__11926__i] = arguments[G__11926__i + 1]; ++G__11926__i;}
+  rest = new cljs.core.IndexedSeq(G__11926__a,0);
 } 
-return G__16704__delegate.call(this,x,rest);};
-G__16704.cljs$lang$maxFixedArity = 1;
-G__16704.cljs$lang$applyTo = (function (arglist__16706){
-var x = cljs.core.first(arglist__16706);
-var rest = cljs.core.rest(arglist__16706);
-return G__16704__delegate(x,rest);
+return G__11925__delegate.call(this,x,rest);};
+G__11925.cljs$lang$maxFixedArity = 1;
+G__11925.cljs$lang$applyTo = (function (arglist__11927){
+var x = cljs.core.first(arglist__11927);
+var rest = cljs.core.rest(arglist__11927);
+return G__11925__delegate(x,rest);
 });
-G__16704.cljs$core$IFn$_invoke$arity$variadic = G__16704__delegate;
-return G__16704;
+G__11925.cljs$core$IFn$_invoke$arity$variadic = G__11925__delegate;
+return G__11925;
 })()
 ;
 atom = function(x,var_args){
@@ -227,13 +227,13 @@ switch(arguments.length){
 case 1:
 return atom__1.call(this,x);
 default:
-var G__16707 = null;
+var G__11928 = null;
 if (arguments.length > 1) {
-var G__16708__i = 0, G__16708__a = new Array(arguments.length -  1);
-while (G__16708__i < G__16708__a.length) {G__16708__a[G__16708__i] = arguments[G__16708__i + 1]; ++G__16708__i;}
-G__16707 = new cljs.core.IndexedSeq(G__16708__a,0);
+var G__11929__i = 0, G__11929__a = new Array(arguments.length -  1);
+while (G__11929__i < G__11929__a.length) {G__11929__a[G__11929__i] = arguments[G__11929__i + 1]; ++G__11929__i;}
+G__11928 = new cljs.core.IndexedSeq(G__11929__a,0);
 }
-return atom__2.cljs$core$IFn$_invoke$arity$variadic(x, G__16707);
+return atom__2.cljs$core$IFn$_invoke$arity$variadic(x, G__11928);
 }
 throw(new Error('Invalid arity: ' + arguments.length));
 };
@@ -283,8 +283,8 @@ return cursor;
 * Run f using requestAnimationFrame or equivalent.
 */
 reagent.core.next_tick = (function next_tick(f){
-var G__16712 = f;
-return (reagent.impl.batching.next_tick.cljs$core$IFn$_invoke$arity$1 ? reagent.impl.batching.next_tick.cljs$core$IFn$_invoke$arity$1(G__16712) : reagent.impl.batching.next_tick.call(null,G__16712));
+var G__11933 = f;
+return (reagent.impl.batching.next_tick.cljs$core$IFn$_invoke$arity$1 ? reagent.impl.batching.next_tick.cljs$core$IFn$_invoke$arity$1(G__11933) : reagent.impl.batching.next_tick.call(null,G__11933));
 });
 /**
 * Works just like clojure.core/partial, except that it is an IFn, and
@@ -298,15 +298,15 @@ return (new reagent.impl.util.partial_ifn(f,args,null));
 var partial = function (f,var_args){
 var args = null;
 if (arguments.length > 1) {
-var G__16713__i = 0, G__16713__a = new Array(arguments.length -  1);
-while (G__16713__i < G__16713__a.length) {G__16713__a[G__16713__i] = arguments[G__16713__i + 1]; ++G__16713__i;}
-  args = new cljs.core.IndexedSeq(G__16713__a,0);
+var G__11934__i = 0, G__11934__a = new Array(arguments.length -  1);
+while (G__11934__i < G__11934__a.length) {G__11934__a[G__11934__i] = arguments[G__11934__i + 1]; ++G__11934__i;}
+  args = new cljs.core.IndexedSeq(G__11934__a,0);
 } 
 return partial__delegate.call(this,f,args);};
 partial.cljs$lang$maxFixedArity = 1;
-partial.cljs$lang$applyTo = (function (arglist__16714){
-var f = cljs.core.first(arglist__16714);
-var args = cljs.core.rest(arglist__16714);
+partial.cljs$lang$applyTo = (function (arglist__11935){
+var f = cljs.core.first(arglist__11935);
+var args = cljs.core.rest(arglist__11935);
 return partial__delegate(f,args);
 });
 partial.cljs$core$IFn$_invoke$arity$variadic = partial__delegate;
