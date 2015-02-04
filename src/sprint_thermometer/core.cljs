@@ -3,7 +3,8 @@
     [clojure.browser.repl :as repl]
     [goog.string :as gstring]
     [goog.string.format]
-    [reagent.core :as reagent :refer [atom]]))
+    [reagent.core :as reagent :refer [atom]]
+    [reagent-forms.core :refer [bind-fields]]))
 
 ;; (repl/connect "http://localhost:9000/repl")
 
@@ -149,13 +150,48 @@
                 :stroke-width mercury-border-width
                 :fill         status-color}}]]]))
 
-(defn app []
-  [:div
-   [:h2 "Thermometer"]
-   [thermometer {:planned           70
-                 :completed         63
-                 :sprint-duration   10
-                 :sprint-day-number 10}]])
+
+(def form-template
+  [:form
+
+   [:div.input-field
+    [:i.mdi-action-today.prefix]
+    [:input {:field :numeric :id :sprint-duration}]
+    [:label {:for "sprint-duration"} "Sprint Duration, Days"]]
+
+   [:div.input-field
+    [:i.mdi-action-schedule.prefix]
+    [:input {:field :numeric :id :sprint-day-number}]
+    [:label {:for "sprint-day-number"} "Sprint Day Number"]]
+
+   [:div.input-field
+    [:i.mdi-action-assignment.prefix]
+    [:input {:field :numeric :id :planned}]
+    [:label {:for "planned"} "Planned Tasks Count"]]
 
 
-(reagent/render-component app (.getElementById js/document "app"))
+   [:div.input-field
+    [:i.mdi-action-done-all.prefix]
+    [:input {:field :numeric :id :completed}]
+    [:label {:for "completed"} "Completed Tasks Count"]]])
+
+
+(defn app
+  []
+  (let [doc (atom {:planned 70})]
+    (fn []
+      [:div.row
+       [:div.col.s4
+        [:h4 "Sprint Params"]
+        [bind-fields form-template doc]]
+       [:div.col.s4
+        [:h4 "Data Interpretation"]]
+       [:div.col.s4
+        [:h4 "Thermometer"]
+        [thermometer {:planned           70
+                      :completed         63
+                      :sprint-duration   10
+                      :sprint-day-number 10}]]])))
+
+
+(reagent/render-component [app] (.getElementById js/document "app"))
