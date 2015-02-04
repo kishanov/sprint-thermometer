@@ -21,7 +21,11 @@
 
 (defn thermometer
   [data]
-  (let [width 240
+  (let [enough-data? (and (pos? (:sprint-duration data))
+                          (pos? (:sprint-day-number data))
+                          (pos? (:planned data))
+                          (pos? (:completed data)))
+        width 240
         height 510
         margin 10
         padding 10
@@ -36,8 +40,11 @@
         mercury-bubble-x (quot width 2)
         mercury-column-width 14
         mercury-column-height (- height (* 2 border-width) (* margin 2) (* padding 2) mercury-bubble-rx)
-        pvc-ratio (- 100 (int (* 100 (/ (:completed data)
-                                        (* (/ (:planned data) (:sprint-duration data)) (:sprint-day-number data))))))
+        pvc-ratio (if enough-data?
+                    (min (- 100 (int (* 100 (/ (:completed data)
+                                               (* (/ (:planned data) (:sprint-duration data)) (:sprint-day-number data))))))
+                         (- 440 366))
+                    0)
 
         status-color (cond
                        (neg? pvc-ratio) "blue"
@@ -49,7 +56,6 @@
         zero-y (* (- 440 366) notch-height)
         status-bar-y (- (+ zero-y margin border-width padding notches-margin-top)
                         (* notch-height pvc-ratio))]
-    (.log js/console pvc-ratio)
     [:svg {:xmlns  "http://www.w3.org/2000/svg"
            :width  width
            :height height}
@@ -134,13 +140,14 @@
             (gstring/format "%.1f" (c-to-f (/ (- 440 i) 10)))])])
 
 
-      [:rect
-       {:x      (+ (- (quot width 2) (quot mercury-column-width 2) 1) mercury-border-width)
-        :y      status-bar-y
-        :width  (+ (- mercury-column-width (* mercury-border-width 2)) 2)
-        :height (- mercury-bubble-y
-                   status-bar-y)
-        :style  {:fill status-color}}]
+      (when enough-data?
+        [:rect
+         {:x      (+ (- (quot width 2) (quot mercury-column-width 2) 1) mercury-border-width)
+          :y      status-bar-y
+          :width  (+ (- mercury-column-width (* mercury-border-width 2)) 2)
+          :height (- mercury-bubble-y
+                     status-bar-y)
+          :style  {:fill status-color}}])
 
       [:circle
        {:cx    mercury-bubble-x
@@ -178,20 +185,18 @@
 
 (defn app
   []
-  (let [doc (atom {:planned 70})]
+  (let [doc (atom {})]
     (fn []
       [:div.row
        [:div.col.s4
         [:h4 "Sprint Params"]
         [bind-fields form-template doc]]
        [:div.col.s4
-        [:h4 "Data Interpretation"]]
+        [:h4 "Data Interpretation"]
+        [:label (str @doc)]]
        [:div.col.s4
         [:h4 "Thermometer"]
-        [thermometer {:planned           70
-                      :completed         63
-                      :sprint-duration   10
-                      :sprint-day-number 10}]]])))
+        [thermometer @doc]]])))
 
 
 (reagent/render-component [app] (.getElementById js/document "app"))
